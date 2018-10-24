@@ -1,1 +1,1 @@
-add_executable(program program.cpp)
+add_executable(test_fitting test_fitting.cpp)

@@ -70,20 +70,44 @@ void test_decision_tree()
 
   Node<Label> root(datapoints);
   Decision_tree<Label> tree(&root);
-
   tree.fit();
-
-
 }
 
+void test_decision_tree1()
+{
+  std::cout << "test_decision_tree\n";
 
+  using Label = int;
+  std::vector<Point<Label>> datapoints {{-2, 1.5, 0},
+                                       {1, 1, 0},
+                                       {0, 1.5, 0},
+                                       {0.5, -0.5, 1},
+                                       {1, -1, 1},
+                                       {-1, -2, 1},
+                                       {1, 2, 0},
+                                       {-1, 2, 1}}; // outlier
+
+
+  // stream out
+  std::ofstream out("data/data.txt");
+  for(std::size_t i = 0; i < datapoints.size(); ++i)
+  {
+    out << datapoints[i].x << " " << datapoints[i].y << " "
+        << datapoints[i].label << "\n";
+  }
+  out.close();
+
+  Node<Label> root(datapoints);
+  Decision_tree<Label> tree(&root);
+  tree.fit();
+}
 
 
 
 int main()
 {
 
-  test_decision_tree();
+  test_decision_tree1();
   return 0;
 }
 

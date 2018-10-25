@@ -6,7 +6,7 @@ template <typename Label>
 struct Point
 {
   double x, y;
-  Label data;
+  Label label;
 };
 
 

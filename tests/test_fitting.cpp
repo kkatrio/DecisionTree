@@ -33,7 +33,8 @@ void test_pointset()
     y[idx] = datapoints[i].y;
   }
 
-  Eigen::VectorXd m = find_model(X, y);
+  // todo: test function fit_model instead of solve_lease_squares
+  Eigen::VectorXd m = solve_least_squares(X, y);
   std::cout << "m= " << m << std::endl;
 
 
@@ -42,15 +43,35 @@ void test_pointset()
   for(std::size_t i = 0; i < datapoints.size(); ++i)
   {
     out << datapoints[i].x << " " << datapoints[i].y << " "
-        << datapoints[i].data << "\n";
+        << datapoints[i].label << "\n";
   }
   out.close();
-
 
   std::ofstream mout("data/model.txt");
   mout << m << "\n";
   mout.close();
 
+
+}
+
+void test_decision_tree()
+{
+  std::cout << "test_decision_tree\n";
+
+  using Label = int;
+  std::vector<Point<Label>> datapoints {{-2, 1.5, 0},
+                                       {1, 1, 0},
+                                       {0, 1.5, 0},
+                                       {0.5, -0.5, 1},
+                                       {1, -1, 1},
+                                       {-1, -2, 1},
+                                       {1, 2, 0}};
+
+
+  Node<Label> root(datapoints);
+  Decision_tree<Label> tree(&root);
+
+  tree.fit();
 
 
 }
@@ -59,12 +80,10 @@ void test_pointset()
 
 
 
-
-
 int main()
 {
 
-  test_pointset();
+  test_decision_tree();
   return 0;
 }
 

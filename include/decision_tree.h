@@ -6,57 +6,8 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-
-
-// rename solve least squares
-// find model to work with vectors
-Eigen::VectorXd solve_least_squares(Eigen::MatrixXd& A, Eigen::VectorXd& b)
-{
-  assert(b.rows() == A.rows());
-  Eigen::VectorXd m;
-  m = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
-  assert(m.rows() == A.cols());
-  return m;
-}
-
-
-// should belong to the class
-template <typename Label>
-std::vector<double> fit_model(std::vector<Point<Label>>& dpoints)
-{
-  // size assertions
-
-  std::cout << "fitting model...";
-  std::cout << "#points= " << dpoints.size() << "\n";
-
-  // cp coords in Eigen matrices
-  Eigen::MatrixXd X(dpoints.size(), 2);
-  Eigen::VectorXd y(dpoints.size());
-  for(std::size_t i = 0; i < dpoints.size(); ++i)
-  {
-    int idx = static_cast<int>(i);
-    X(idx, 0) = 1;
-    X(idx, 1) = dpoints[i].x;
-    y[idx] = dpoints[i].y;
-  }
-
-  assert(X.cols() == 2);
-
-  Eigen::VectorXd w = solve_least_squares(X, y);
-
-  assert(w.rows() == 2);
-
-  // cp solution and return a std::vector
-  // quick solution
-  std::vector<double> m;
-  m.push_back(w[0]);
-  m.push_back(w[1]);
-
-  assert(m.size() == 2);
-  return m;
-}
-
-
+#include <utility>
+#include "splitter.h"
 
 
 
@@ -83,9 +34,9 @@ private:
 
   using Points = std::vector<Point<Label>>;
 
-  // divides points based on the model, independent of their label
-  void divide(Points& parentdata,
-              std::vector<double>& m,
+  // divides points based on the split line
+  void divide(const Points& parentdata,
+              const std::pair<double, double>& line,
               Points& left,
               Points& right)
   {
@@ -94,7 +45,9 @@ private:
     // ypred = b0 + b1 * x
     for(std::size_t i = 0; i < parentdata.size(); ++i)
     {
-      double ypred = m[0] + m[1] * parentdata[i].x;
+      double ypred = line.first + line.second * parentdata[i].x;
+      //figure out y_split
+
       if (ypred > parentdata[i].y)
         left.push_back(parentdata[i]); // fix needed
       else
@@ -102,12 +55,10 @@ private:
     }
 
     std::cout << "parent size: " << parentdata.size() << "\n";
-
     std::cout << "left size: " << left.size();
     for(int i = 0; i < left.size(); ++i)
       std::cout << " (" << left[i].x << "," << left[i].y << ") ";
     std::cout << std::endl;
-
     std::cout << "right size: " << right.size();
     for(int i = 0; i < right.size(); ++i)
       std::cout << " (" << right[i].x << "," << right[i].y << ") ";
@@ -121,16 +72,15 @@ private:
 
     assert(!node->is_pure());
 
-    // fit model
-    std::vector<double> m = fit_model(node->data);
+    Splitter<Points> splitter;
+    std::pair<double, double> split_line = splitter(node->data);
+    std::cout << "split line: y = " << split_line.first << " + " <<
+                 split_line.second << "x\n";
 
-    // save coeffs to stream out for plotting
-    models.push_back(m[0]);
-    models.push_back(m[1]);
 
-    // divide points based on model
+    // divide points based on the splitting line
     Points pleft, pright;
-    divide(node->data, m, pleft, pright);
+    divide(node->data, split_line, pleft, pright);
 
     if(pleft.empty() || pright.empty())
     {
@@ -142,7 +92,7 @@ private:
     assert(!pright.empty());
 
     // asssign points to child nodes
-    Node<Label>* l_child = new Node<Label>;
+    Node<Label>* l_child = new Node<Label>; // todo: delete
     Node<Label>* r_child = new Node<Label>;
     l_child->data = pleft;
     r_child->data = pright;
@@ -181,6 +131,7 @@ private:
   }
 
   // data
+
   std::vector<double> models; // save to stream out
   Node<Label>* root;
 };

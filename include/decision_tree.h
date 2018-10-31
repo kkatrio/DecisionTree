@@ -34,6 +34,7 @@ private:
 
   using Points = std::vector<Point<Label>>;
 
+  // should this be free?
   // divides points based on the split line
   void divide(const Points& parentdata,
               const std::pair<double, double>& line,

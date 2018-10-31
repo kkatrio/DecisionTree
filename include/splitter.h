@@ -4,15 +4,111 @@
 #include <utility>
 #include <iostream>
 #include <cassert>
-#include <limits>
 #include "vector.h"
 #include <Eigen/Dense>
+#include <vector>
+#include <algorithm>
+#include <numeric>
 
 
 unsigned factorial(unsigned n)
 {
   return n == 0 || n == 1 ? 1 : factorial(n-1) * n;
 }
+
+// free copy of Decision_tree's member
+template <typename Point>
+void divide_points(const std::vector<Point>& points,
+                   const std::pair<double, double>& line,
+                   std::vector<Point>& top_set,
+                   std::vector<Point>& bottom_set)
+{
+  //std::cout << "dividing...\n";
+
+  // y_split = b0 + b1 * x
+  for(std::size_t i = 0; i < points.size(); ++i)
+  {
+    double y_splitting_line = line.first + line.second * points[i].x;
+    double y_point = points[i].y;
+
+    if (y_point > y_splitting_line)
+      top_set.push_back(points[i]); // fix needed
+    else // equal too
+      bottom_set.push_back(points[i]);
+  }
+
+  /*
+  std::cout << "points size: " << points.size() << "\n";
+  std::cout << "left_set size: " << left_set.size();
+  for(int i = 0; i < left_set.size(); ++i)
+    std::cout << " (" << left_set[i].x << "," << left_set[i].y << ") ";
+  std::cout << std::endl;
+  std::cout << "right_set size: " << right_set.size();
+  for(int i = 0; i < right_set.size(); ++i)
+    std::cout << " (" << right_set[i].x << "," << right_set[i].y << ") ";
+  std::cout << std::endl;
+  */
+}
+
+template <typename Point>
+struct Has_label
+{
+  Has_label(int l) : label(l) {}
+  bool operator()(Point p)
+  {
+    return p.label == label;
+  }
+  int label;
+};
+
+
+
+template <typename Point>
+double measure_gini(std::vector<Point>& node_points)
+{
+  // gini index = 1 - Σ_i (p_i)^2
+  // p_i is the fraction of points belonging to class i
+
+  // todo: have a vector of labels, maybe in the class as data
+  // temporarily:
+  using Label = int;
+  std::vector<Label> plabels{0, 1};
+  //
+
+  std::vector<double> pis; // to save the fractions
+  pis.reserve(plabels.size());
+  for(int plabel : plabels)
+  {
+
+    auto has_label = [plabel](Point p)
+    {
+      return p.label == plabel;
+    };
+
+    //int c = std::count_if(node_points.begin(), node_points.end(), Has_label<Point>(plabel));
+    int c = std::count_if(node_points.begin(), node_points.end(), has_label);
+
+    double pi = static_cast<double>(c) / static_cast<double>(node_points.size());
+    pis.push_back(pi * pi); // store the square
+  }
+
+  return 1 - std::accumulate(pis.begin(), pis.end(), 0.0);
+}
+
+
+template <typename Point>
+double measure_weighted_average_index(std::vector<Point>& points_left, std::vector<Point>& points_right)
+{
+
+  // tree is binary, so ok
+  double n1 = static_cast<double>(points_left.size());
+  double n2 = static_cast<double>(points_right.size());
+  double n = n1 + n2; // points in the parent node
+  double g1 = measure_gini(points_left);
+  double g2 = measure_gini(points_right);
+  return  (n1 / n) * g1 + (n2 / n) * g2;
+}
+
 
 
 template <typename Points>
@@ -31,7 +127,16 @@ public:
     return perpendicular_line(best_points);
   }
 
-  // brute force : consider all and take the best
+  // just for testing
+  std::pair<double, double> get_line(const std::pair<Point, Point>& two_points)
+  {
+    return perpendicular_line(two_points);
+  }
+
+
+private:
+
+  // brute force : consider all and take (one of) the best
   // all (unsorted) binary(k=2) combinations of n points
   // are n! / ((n-k)! k!)
 
@@ -40,7 +145,7 @@ public:
     int n = static_cast<int>(points.size());
     unsigned count = 0;
 
-    double min = std::numeric_limits<double>::max();
+    double min_gini_index = 0.5;
     int min_i, min_j;
 
     for(int i = 0; i < n-1; ++i)
@@ -48,10 +153,29 @@ public:
       for(int j = i + 1; j < n; ++j)
       {
 
-        double dist = measure(points[i],points[j]);
-        if (dist < min)
+        // for every pair, find perpendicular line
+        std::pair<double, double> line =
+            perpendicular_line(std::make_pair(points[i], points[j]));
+
+        // based on the line, split points
+        std::vector<Point> left_set;
+        std::vector<Point> right_set;
+        divide_points(points, line, left_set, right_set);
+
+        // must maximize information gain
+        // Δ = I(parent) - Σ_j (N_i / N) I_j   ,
+        // j the children (binary = 2),
+        // N_j number of points in the child node
+        // N number of points in the parent node
+        // I_j impurity of the node
+
+        // we find the min weighted average
+        double impurity = measure_weighted_average_index(left_set, right_set);
+        //std::cout << "imp = " << impurity << " i,j= " << i << "," << j << "\n";
+
+        if (impurity < min_gini_index)
         {
-          min = dist;
+          min_gini_index = impurity;
           min_i = i;
           min_j = j;
         }
@@ -60,7 +184,9 @@ public:
       }
     }
 
-    unsigned n_combinations = factorial(n) / (factorial(n- 2) * 2);// implicit convestion ??
+    //std::cout << "min_gini_index = " << min_gini_index << "  i, j = " << min_i << " " << min_j << "\n";
+
+    unsigned n_combinations = factorial(n) / (factorial(n - 2) * 2);// implicit convestion ??
     assert(count == n_combinations);
 
 
@@ -95,8 +221,8 @@ public:
 
     Eigen::Matrix2d V;
     V(0,0) = v.x;
-    V(0,1) = v.x;
-    V(1,0) = v.y;
+    V(0,1) = v.y;
+    V(1,0) = v.x;
     V(1,1) = - v.y;
     Eigen::Vector2d b;
     b[0] = 0;
@@ -106,10 +232,10 @@ public:
     double nx = n[0];
     double ny = n[1];
 
-    if (nx == 0)
+    if (std::abs(nx) < 1e-15)
     {
-      std::cerr << "returning 0,0 instead of a line!\n";
-      return std::make_pair(0, 0); // needs thinking. what if line is x = 1
+      //std::cerr << "vertical line! returning b0 = 0, b1 = 1000!\n";
+      return std::make_pair(0, 1000); // needs thinking. what if line is x = 1
     }
 
     // Line(x,y) = M + t * n, M is the middle of v,  -Inf < t < Inf
@@ -127,16 +253,6 @@ public:
 
     return std::make_pair(b0, b1);
   }
-
-  double measure(const Point& pi, const Point& pj)
-  {
-    // measures squared distance
-    return (pj.x - pi.x) * (pj.x - pi.x) + (pj.y - pi.y) * (pj.y - pi.y);
-
-  }
-
-
-
 
 
 };

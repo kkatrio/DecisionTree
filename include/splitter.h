@@ -184,7 +184,7 @@ private:
       }
     }
 
-    //std::cout << "min_gini_index = " << min_gini_index << "  i, j = " << min_i << " " << min_j << "\n";
+    std::cout << "min_gini_index = " << min_gini_index << "  i, j = " << min_i << " " << min_j << "\n";
 
     unsigned n_combinations = factorial(n) / (factorial(n - 2) * 2);// implicit convestion ??
     assert(count == n_combinations);
@@ -228,9 +228,23 @@ private:
     b[0] = 0;
     b[1] = 1;
 
+    /*
+    if (V.determinant() == 0)
+    {
+      // todo
+    }
+    */
+
     Eigen::Vector2d n = V.colPivHouseholderQr().solve(b);
+    //Eigen::Vector2d n = V.ldlt().solve(b);
+
+    //double relative_error = (V*n - b).norm() / b.norm(); // norm() is L2 norm
+    //std::cout << "The relative error is:\n" << relative_error << std::endl;
+
     double nx = n[0];
     double ny = n[1];
+
+    //std::cout << "nx= " << nx << " ny= " << ny << std::endl;
 
     if (std::abs(nx) < 1e-15)
     {

@@ -12,15 +12,16 @@ struct Vector
 
   void normalize()
   {
-    x /= norm();
-    y /= norm();
+    // not great. Assert it's not been normalized before?
+    double nrm = norm();
+    x /= nrm;
+    y /= nrm;
   }
 
   double norm()
   {
     return std::sqrt(x * x + y * y);
   }
-
 
 };
 

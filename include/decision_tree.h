@@ -8,7 +8,7 @@
 #include <fstream>
 #include <utility>
 #include "splitter.h"
-
+#include <algorithm>
 
 
 template <typename Label>
@@ -30,12 +30,15 @@ public:
 
   }
 
+
 private:
 
   using Points = std::vector<Point<Label>>;
 
   void partition(Node<Label>* node)
   {
+
+    save_xrange(node->data);
 
     std::cout << "partitioning...\n";
 
@@ -52,6 +55,7 @@ private:
     // divide points based on the splitting line
     Points pleft, pright;
     divide_points(node->data, split_line, pleft, pright);
+
 
     if(pleft.empty() || pright.empty())
     {
@@ -91,18 +95,36 @@ private:
     return node->is_pure();
   }
 
+  void save_xrange(Points data)
+  {
+    // sort based on x
+    using Point = typename Points::value_type;
+    auto based_on_x = [](Point p1, Point p2)
+    {
+      return p1.x < p2.x;
+    };
+
+    std::sort(data.begin(), data.end(), based_on_x);
+
+    xrange.push_back(data[0].x); //xmin
+    xrange.push_back(data[data.size()-1].x); //xmax
+  }
+
   void stream_out_lines()
   {
     assert(lines.size() % 2 == 0); // even, 2 coeff per model
     std::ofstream linesout("data/lines.txt");
     for(int i = 0; i < lines.size(); i = i + 2)
     {
-      linesout << lines[i] << " " << lines[i+1] << "\n";
+      linesout << lines[i] << " " << lines[i+1] << " "
+               << xrange[i] << " " << xrange[i+1]
+               << "\n";
     }
   }
 
   // data
   std::vector<double> lines; // save to stream out
+  std::vector<double> xrange; // save to stream out
   Node<Label>* root;
 };
 

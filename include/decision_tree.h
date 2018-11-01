@@ -22,7 +22,7 @@ public:
   {
     partition(root);
 
-    stream_out_models();
+    stream_out_lines();
   }
 
   void predict()
@@ -33,38 +33,6 @@ public:
 private:
 
   using Points = std::vector<Point<Label>>;
-
-  // should this be free?
-  // divides points based on the split line
-  void divide(const Points& parentdata,
-              const std::pair<double, double>& line,
-              Points& left,
-              Points& right)
-  {
-    std::cout << "dividing...\n";
-
-    // ypred = b0 + b1 * x
-    for(std::size_t i = 0; i < parentdata.size(); ++i)
-    {
-      double ypred = line.first + line.second * parentdata[i].x;
-      //figure out y_split
-
-      if (ypred > parentdata[i].y)
-        left.push_back(parentdata[i]); // fix needed
-      else
-        right.push_back(parentdata[i]);
-    }
-
-    std::cout << "parent size: " << parentdata.size() << "\n";
-    std::cout << "left size: " << left.size();
-    for(int i = 0; i < left.size(); ++i)
-      std::cout << " (" << left[i].x << "," << left[i].y << ") ";
-    std::cout << std::endl;
-    std::cout << "right size: " << right.size();
-    for(int i = 0; i < right.size(); ++i)
-      std::cout << " (" << right[i].x << "," << right[i].y << ") ";
-    std::cout << std::endl;
-  }
 
   void partition(Node<Label>* node)
   {
@@ -78,10 +46,12 @@ private:
     std::cout << "split line: y = " << split_line.first << " + " <<
                  split_line.second << "x\n";
 
+    lines.push_back(split_line.first);
+    lines.push_back(split_line.second);
 
     // divide points based on the splitting line
     Points pleft, pright;
-    divide(node->data, split_line, pleft, pright);
+    divide_points(node->data, split_line, pleft, pright);
 
     if(pleft.empty() || pright.empty())
     {
@@ -121,19 +91,18 @@ private:
     return node->is_pure();
   }
 
-  void stream_out_models()
+  void stream_out_lines()
   {
-    assert(models.size() % 2 == 0); // even, probably 2 coeff per model
-    std::ofstream mout("data/models.txt");
-    for(int i = 0; i < models.size(); i = i + 2)
+    assert(lines.size() % 2 == 0); // even, 2 coeff per model
+    std::ofstream linesout("data/lines.txt");
+    for(int i = 0; i < lines.size(); i = i + 2)
     {
-      mout << models[i] << " " << models[i+1] << "\n";
+      linesout << lines[i] << " " << lines[i+1] << "\n";
     }
   }
 
   // data
-
-  std::vector<double> models; // save to stream out
+  std::vector<double> lines; // save to stream out
   Node<Label>* root;
 };
 

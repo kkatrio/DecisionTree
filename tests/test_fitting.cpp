@@ -21,6 +21,14 @@ void test_decision_tree()
                                        {-1, -2, 1},
                                        {1, 2, 0}};
 
+  // stream out
+  std::ofstream out("data/data.txt");
+  for(std::size_t i = 0; i < datapoints.size(); ++i)
+  {
+    out << datapoints[i].x << " " << datapoints[i].y << " "
+        << datapoints[i].label << "\n";
+  }
+  out.close();
 
   Node<Label> root(datapoints);
   Decision_tree<Label> tree(&root);

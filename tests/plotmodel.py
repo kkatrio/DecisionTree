@@ -15,7 +15,7 @@ xm = np.arange(xmin, xmax, 0.1);
 
 fig, ax = plt.subplots()
 
-with open('../build/data/models.txt') as fm:
+with open('../build/data/lines.txt') as fm:
     for line in fm:
         model = np.fromstring(line, dtype=float, sep=' ')
         b0 = model[0]

@@ -16,7 +16,7 @@ unsigned factorial(unsigned n)
   return n == 0 || n == 1 ? 1 : factorial(n-1) * n;
 }
 
-// free copy of Decision_tree's member
+// used by Splitter and Decision tree classes
 template <typename Point>
 void divide_points(const std::vector<Point>& points,
                    const std::pair<double, double>& line,

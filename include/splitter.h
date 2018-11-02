@@ -184,7 +184,7 @@ private:
       }
     }
 
-    std::cout << "min_gini_index = " << min_gini_index << "  i, j = " << min_i << " " << min_j << "\n";
+    //std::cout << "min_gini_index = " << min_gini_index << "  i, j = " << min_i << " " << min_j << "\n";
 
     unsigned n_combinations = factorial(n) / (factorial(n - 2) * 2);// implicit convestion ??
     assert(count == n_combinations);

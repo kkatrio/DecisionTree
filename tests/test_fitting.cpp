@@ -95,7 +95,8 @@ void test_decision_tree_outlier()
 int main()
 {
 
-  //test_decision_tree2();
+  test_decision_tree();
+  test_decision_tree2();
   test_decision_tree_outlier();
   return 0;
 }

@@ -29,8 +29,8 @@ void test_perpendicular_line()
   double e = 1e-15;
   double b0 = perp_line.first;
   double b1 = perp_line.second;
-  assert(b0 > -0.780931089239486 - e && b0 < -0.780931089239486 + e);
-  assert(b1 > 1.22474487139158 - e && b1 < 1.224744871391588 + e);
+  assert(b0 > -0.5 - e && b0 < -0.5 + e);
+  assert(b1 > 1 - e && b1 < 1 + e);
 
 }
 
@@ -78,10 +78,10 @@ void test_splitter1()
   Splitter<Points> splitter;
   std::pair<double, double> ps = splitter(datapoints); // returns a line
   double e = 1e-15;
-  assert(ps.first < 0.492383992870817 + e
-         && ps.first > 0.492383992870817 - e);
-  assert(ps.second < -0.323178657161089 + e
-         && ps.second > -0.323178657161089 - e);
+  assert(ps.first < 0.5 + e
+         && ps.first > 0.5 - e);
+  assert(ps.second < -0.333333333333333 + e
+         && ps.second > -0.333333333333333 - e);
 
 }
 
@@ -102,10 +102,10 @@ void test_splitter2()
   std::pair<double, double> ps = splitter(datapoints); // returns a line
 
   double e = 1e-15;
-  assert(ps.first < 0.251098901098901 + e
-         && ps.first > 0.251098901098901 - e);
-  assert(ps.second < 0.501098901098901 + e
-         && ps.second > 0.501098901098901 - e);
+  assert(ps.first < 0.3214285714285712 + e
+         && ps.first > 0.3214285714285712 - e);
+  assert(ps.second < 0.5714285714285712 + e
+         && ps.second > 0.5714285714285712 - e);
 
 }
 
@@ -115,7 +115,6 @@ int main()
   test_gini_index();
   test_factorial();
   test_perpendicular_line();
-  std::cout.precision(15);
   test_splitter1();
   test_splitter2();
   return 0;

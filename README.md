@@ -12,3 +12,6 @@ The Eigen library is used for solving linear systems and python is used for plot
 * prediction
 * plot with countours
 * sort search space to avoid brute force
+
+### reading
+* https://www-users.cs.umn.edu/~kumar001/dmbook/ch4.pdf
